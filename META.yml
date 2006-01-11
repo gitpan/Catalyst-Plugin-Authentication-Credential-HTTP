@@ -1,0 +1,21 @@
+---
+name: Catalyst-Plugin-Authentication-Credential-HTTP
+version: 0.01
+author: ~
+abstract: |-
+  HTTP Basic authentication
+  for Catlayst.
+license: perl
+requires:
+  Catalyst: 5.49
+  Catalyst::Plugin::Authentication: 0
+  String::Escape: 0
+  Test::Exception: 0
+  Test::MockObject: 1.01
+  URI::Escape: 0
+  perl: 5.8.1
+provides:
+  Catalyst::Plugin::Authentication::Credential::HTTP:
+    file: lib/Catalyst/Plugin/Authentication/Credential/HTTP.pm
+    version: 0.01
+generated_by: Module::Build version 0.2611
