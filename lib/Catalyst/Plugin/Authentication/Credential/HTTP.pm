@@ -11,7 +11,7 @@ use URI::Escape    ();
 use Catalyst       ();
 use Digest::MD5    ();
 
-our $VERSION = "0.02";
+our $VERSION = "0.03";
 
 sub authenticate_http {
     my $c = shift;
@@ -274,6 +274,11 @@ for Catlayst.
         Authentication::Credential::HTTP
     /;
 
+    __PACKAGE__->config->{authentication}{http}{type} = 'any'; # or 'digest' or 'basic'
+    __PACKAGE__->config->{authentication}{users} = {
+        Mufasa => { password => "Circle Of Life", },
+    };
+
     sub foo : Local {
         my ( $self, $c ) = @_;
 
@@ -297,10 +302,8 @@ for Catlayst.
 =head1 DESCRIPTION
 
 This moduule lets you use HTTP authentication with
-L<Catalyst::Plugin::Authentication>.
-
-Currently this module only supports the Basic scheme, but upon request Digest
-will also be added. Patches welcome!
+L<Catalyst::Plugin::Authentication>. Both basic and digest authentication
+are currently supported.
 
 =head1 METHODS
 
@@ -313,8 +316,8 @@ C<authorization_required_response> and detaches the current action call stack.
 
 =item authenticate_http
 
-Looks inside C<< $c->request->headers >> and processes the basic (badly named)
-authorization header.
+Looks inside C<< $c->request->headers >> and processes the digest and basic
+(badly named) authorization header.
 
 =item authorization_required_response
 

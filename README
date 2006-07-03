@@ -9,6 +9,11 @@ SYNOPSIS
             Authentication::Credential::HTTP
         /;
 
+        __PACKAGE__->config->{authentication}{http}{type} = 'any'; # or 'digest' or 'basic'
+        __PACKAGE__->config->{authentication}{users} = {
+            Mufasa => { password => "Circle Of Life", },
+        };
+
         sub foo : Local {
             my ( $self, $c ) = @_;
 
@@ -31,10 +36,8 @@ SYNOPSIS
 
 DESCRIPTION
     This moduule lets you use HTTP authentication with
-    Catalyst::Plugin::Authentication.
-
-    Currently this module only supports the Basic scheme, but upon request
-    Digest will also be added. Patches welcome!
+    Catalyst::Plugin::Authentication. Both basic and digest authentication
+    are currently supported.
 
 METHODS
     authorization_required
@@ -43,8 +46,8 @@ METHODS
         call stack.
 
     authenticate_http
-        Looks inside "$c->request->headers" and processes the basic (badly
-        named) authorization header.
+        Looks inside "$c->request->headers" and processes the digest and
+        basic (badly named) authorization header.
 
     authorization_required_response
         Sets "$c->response" to the correct status code, and adds the correct

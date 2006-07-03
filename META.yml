@@ -1,6 +1,6 @@
 ---
 name: Catalyst-Plugin-Authentication-Credential-HTTP
-version: 0.02
+version: 0.03
 author: ~
 abstract: |-
   HTTP Basic authentication
@@ -17,8 +17,8 @@ requires:
 provides:
   Catalyst::Plugin::Authentication::Credential::HTTP:
     file: lib/Catalyst/Plugin/Authentication/Credential/HTTP.pm
-    version: 0.02
+    version: 0.03
   Catalyst::Plugin::Authentication::Credential::HTTP::Nonce:
     file: lib/Catalyst/Plugin/Authentication/Credential/HTTP.pm
-    version: 0.02
+    version: 0.03
 generated_by: Module::Build version 0.2611
