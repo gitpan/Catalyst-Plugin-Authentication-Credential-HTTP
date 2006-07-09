@@ -11,7 +11,7 @@ use URI::Escape    ();
 use Catalyst       ();
 use Digest::MD5    ();
 
-our $VERSION = "0.03";
+our $VERSION = "0.04";
 
 sub authenticate_http {
     my $c = shift;
@@ -263,7 +263,7 @@ __END__
 
 =head1 NAME
 
-Catalyst::Plugin::Authentication::Credential::HTTP - HTTP Basic authentication
+Catalyst::Plugin::Authentication::Credential::HTTP - HTTP Basic and Digest authentication
 for Catlayst.
 
 =head1 SYNOPSIS

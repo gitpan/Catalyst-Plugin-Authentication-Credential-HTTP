@@ -1,6 +1,6 @@
 NAME
-    Catalyst::Plugin::Authentication::Credential::HTTP - HTTP Basic
-    authentication for Catlayst.
+    Catalyst::Plugin::Authentication::Credential::HTTP - HTTP Basic and
+    Digest authentication for Catlayst.
 
 SYNOPSIS
         use Catalyst qw/
