@@ -1,6 +1,6 @@
 ---
 name: Catalyst-Plugin-Authentication-Credential-HTTP
-version: 0.04
+version: 0.05
 author: ~
 abstract: |-
   HTTP Basic and Digest authentication
@@ -9,6 +9,7 @@ license: perl
 requires:
   Catalyst: 5.49
   Catalyst::Plugin::Authentication: 0
+  Data::UUID: 0.11
   String::Escape: 0
   Test::Exception: 0
   Test::MockObject: 1.01
@@ -17,8 +18,8 @@ requires:
 provides:
   Catalyst::Plugin::Authentication::Credential::HTTP:
     file: lib/Catalyst/Plugin/Authentication/Credential/HTTP.pm
-    version: 0.04
+    version: 0.05
   Catalyst::Plugin::Authentication::Credential::HTTP::Nonce:
     file: lib/Catalyst/Plugin/Authentication/Credential/HTTP.pm
-    version: 0.04
+    version: 0.05
 generated_by: Module::Build version 0.2611
