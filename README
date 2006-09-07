@@ -40,18 +40,62 @@ DESCRIPTION
     are currently supported.
 
 METHODS
-    authorization_required
+    authorization_required %opts
         Tries to "authenticate_http", and if that fails calls
         "authorization_required_response" and detaches the current action
         call stack.
 
-    authenticate_http
+        This method just passes the options through untouched.
+
+    authenticate_http %opts
         Looks inside "$c->request->headers" and processes the digest and
         basic (badly named) authorization header.
 
-    authorization_required_response
+        This will only try the methods set in the configuration.
+
+        See the next two methods for what %opts can contain.
+
+    authenticate_basic %opts
+    authenticate_digest %opts
+        Try to authenticate one of the methods without checking if the
+        method is allowed in the configuration.
+
+        %opts can contain "store" (either an object or a name), "user" (to
+        disregard %the username from the header altogether, overriding it
+        with a username or user %object).
+
+    authorization_required_response %opts
         Sets "$c->response" to the correct status code, and adds the correct
         header to demand authentication data from the user agent.
+
+        Typically used by "authorization_required", but may be invoked
+        manually.
+
+        %opts can contain "realm", "domain" and "algorithm", which are used
+        to build %the digest header.
+
+    store_digest_authorization_nonce $key, $nonce
+    get_digest_authorization_nonce $key
+        Set or get the $nonce object used by the digest auth mode.
+
+        You may override these methods. By default they will call "get" and
+        "set" on "$c->cache".
+
+CONFIGURATION
+    All configuration is stored in
+    "YourApp->config->{authentication}{http}".
+
+    This should be a hash, and it can contain the following entries:
+
+    store
+        Either a name or an object -- the default store to use for HTTP
+        authentication.
+
+    type
+        Can be either "any" (the default), "basic" or "digest".
+
+        This controls "authorization_required_response" and
+        "authenticate_http", but not the "manual" methods.
 
 AUTHORS
     Yuval Kogman, "nothingmuch@woobling.org"

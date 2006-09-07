@@ -1,25 +1,17 @@
----
-name: Catalyst-Plugin-Authentication-Credential-HTTP
-version: 0.05
-author: ~
-abstract: |-
-  HTTP Basic and Digest authentication
-  for Catlayst.
-license: perl
+# http://module-build.sourceforge.net/META-spec.html
+#XXXXXXX This is a prototype!!!  It will change in the future!!! XXXXX#
+name:         Catalyst-Plugin-Authentication-Credential-HTTP
+version:      0.06
+version_from: lib/Catalyst/Plugin/Authentication/Credential/HTTP.pm
+installdirs:  site
 requires:
-  Catalyst: 5.49
-  Catalyst::Plugin::Authentication: 0
-  Data::UUID: 0.11
-  String::Escape: 0
-  Test::Exception: 0
-  Test::MockObject: 1.01
-  URI::Escape: 0
-  perl: 5.8.1
-provides:
-  Catalyst::Plugin::Authentication::Credential::HTTP:
-    file: lib/Catalyst/Plugin/Authentication/Credential/HTTP.pm
-    version: 0.05
-  Catalyst::Plugin::Authentication::Credential::HTTP::Nonce:
-    file: lib/Catalyst/Plugin/Authentication/Credential/HTTP.pm
-    version: 0.05
-generated_by: Module::Build version 0.2611
+    Catalyst:                      5.49
+    Catalyst::Plugin::Authentication: 0
+    Data::UUID:                    0.11
+    String::Escape:                0
+    Test::Exception:               0
+    Test::MockObject:              1.01
+    URI::Escape:                   0
+
+distribution_type: module
+generated_by: ExtUtils::MakeMaker version 6.30

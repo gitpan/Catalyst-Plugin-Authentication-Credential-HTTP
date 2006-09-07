@@ -11,25 +11,42 @@ use URI::Escape    ();
 use Catalyst       ();
 use Digest::MD5    ();
 
-our $VERSION = "0.05";
+our $VERSION = "0.06";
 
 sub authenticate_http {
-    my $c = shift;
+    my ( $c, @args ) = @_;
 
-    return $c->authenticate_digest || $c->authenticate_basic;
+    return 1 if $c->_is_http_auth_type('digest') && $c->authenticate_digest(@args);
+    return 1 if $c->_is_http_auth_type('basic')  && $c->authenticate_basic(@args);
+}
+
+sub get_http_auth_store {
+    my ( $c, %opts ) = @_;
+
+    my $store = $opts{store} || $c->config->{authentication}{http}{store} || return;
+
+    return ref $store
+        ? $store
+        : $c->get_auth_store($store);
 }
 
 sub authenticate_basic {
-    my $c = shift;
+    my ( $c, %opts ) = @_;
 
     $c->log->debug('Checking http basic authentication.') if $c->debug;
 
     my $headers = $c->req->headers;
 
-    if ( my ( $user, $password ) = $headers->authorization_basic ) {
+    if ( my ( $username, $password ) = $headers->authorization_basic ) {
 
-        if ( my $store = $c->config->{authentication}{http}{store} ) {
-            $user = $store->get_user($user);
+        my $user;
+
+        unless ( $user = $opts{user} ) {
+            if ( my $store = $c->get_http_auth_store(%opts) ) {
+                $user = $store->get_user($username);
+            } else {
+                $user = $username;
+            }
         }
 
         return $c->login( $user, $password );
@@ -39,7 +56,7 @@ sub authenticate_basic {
 }
 
 sub authenticate_digest {
-    my $c = shift;
+    my ( $c, %opts ) = @_;
 
     $c->log->debug('Checking http digest authentication.') if $c->debug;
 
@@ -47,8 +64,6 @@ sub authenticate_digest {
     my @authorization = $headers->header('Authorization');
     foreach my $authorization (@authorization) {
         next unless $authorization =~ m{^Digest};
-
-        $c->_check_cache;
 
         my %res = map {
             my @key_val = split /=/, $_, 2;
@@ -58,7 +73,7 @@ sub authenticate_digest {
         } split /,\s?/, substr( $authorization, 7 );    #7 == length "Digest "
 
         my $opaque = $res{opaque};
-        my $nonce  = $c->cache->get( __PACKAGE__ . '::opaque:' . $opaque );
+        my $nonce  = $c->get_digest_authorization_nonce( __PACKAGE__ . '::opaque:' . $opaque );
         next unless $nonce;
 
         $c->log->debug('Checking authentication parameters.')
@@ -91,9 +106,13 @@ sub authenticate_digest {
         my $realm    = $res{realm};
 
         my $user;
-        my $store = $c->config->{authentication}{http}{store}
-          || $c->default_auth_store;
-        $user = $store->get_user($username) if $store;
+
+        unless ( $user = $opts{user} ) {
+            if ( my $store = $c->get_http_auth_store(%opts) || $c->default_auth_store ) {
+                $user = $store->get_user($username);
+            }
+        }
+
         unless ($user) {    # no user, no authentication
             $c->log->debug('Unknown user: $user.') if $c->debug;
             return 0;
@@ -154,7 +173,7 @@ sub _check_cache {
       unless $c->can('cache');
 }
 
-sub _is_auth_type {
+sub _is_http_auth_type {
     my ( $c, $type ) = @_;
 
     my $cfgtype = lc( $c->config->{authentication}{http}{type} || 'any' );
@@ -163,12 +182,11 @@ sub _is_auth_type {
 }
 
 sub authorization_required {
-    my ( $c, %opts ) = @_;
+    my ( $c, @args ) = @_;
 
-    return 1 if $c->_is_auth_type('digest') && $c->authenticate_digest;
-    return 1 if $c->_is_auth_type('basic')  && $c->authenticate_basic;
-
-    $c->authorization_required_response(%opts);
+    return 1 if $c->authenticate_http(@args);
+    
+    $c->authorization_required_response(@args);
 
     die $Catalyst::DETACH;
 }
@@ -178,29 +196,61 @@ sub authorization_required_response {
 
     $c->res->status(401);
 
-    my ( $digest, $basic );
-    $digest = $c->build_authorization_required_response( \%opts, 'Digest' )
-      if $c->_is_auth_type('digest');
-    $basic = $c->build_authorization_required_response( \%opts, 'Basic' )
-      if $c->_is_auth_type('basic');
+    # *DONT* short circuit
+    my $ok;
+    $ok++ if $c->_create_digest_auth_response(\%opts);
+    $ok++ if $c->_create_basic_auth_response(\%opts);
 
-    die 'Could not build authorization required response. '
-      . 'Did you configure a valid authentication http type: '
-      . 'basic, digest, any'
-      unless $digest || $basic;
-
-    $c->res->headers->push_header( 'WWW-Authenticate' => $digest )
-      if $digest;
-    $c->res->headers->push_header( 'WWW-Authenticate' => $basic ) if $basic;
+    unless ( $ok ) {
+        die 'Could not build authorization required response. '
+        . 'Did you configure a valid authentication http type: '
+        . 'basic, digest, any';
+    }
 }
 
-sub build_authorization_required_response {
-    my ( $c, $opts, $type ) = @_;
-    my @opts;
+sub _add_authentication_header {
+    my ( $c, $header ) = @_;
+    $c->res->headers->push_header( 'WWW-Authenticate' => $header );
+}
+
+sub _create_digest_auth_response {
+    my ( $c, $opts ) = @_;
+      
+    return unless $c->_is_http_auth_type('digest');
+    
+    if ( my $digest = $c->_build_digest_auth_header( $opts ) ) {
+        $c->_add_authentication_header( $digest );
+        return 1;
+    }
+
+    return;
+}
+
+sub _create_basic_auth_response {
+    my ( $c, $opts ) = @_;
+    
+    return unless $c->_is_http_auth_type('basic');
+
+    if ( my $basic = $c->_build_basic_auth_header( $opts ) ) {
+        $c->_add_authentication_header( $basic );
+        return 1;
+    }
+
+    return;
+}
+
+sub _build_auth_header_realm {
+    my ( $c, $opts ) = @_;    
 
     if ( my $realm = $opts->{realm} ) {
-        push @opts, 'realm=' . String::Escape::qprintable($realm);
+        return 'realm=' . String::Escape::qprintable($realm);
+    } else {
+        return;
     }
+}
+
+sub _build_auth_header_domain {
+    my ( $c, $opts ) = @_;
 
     if ( my $domain = $opts->{domain} ) {
         Catalyst::Excpetion->throw("domain must be an array reference")
@@ -211,25 +261,77 @@ sub build_authorization_required_response {
           ? ( map { $c->uri_for($_) } @$domain )
           : ( map { URI::Escape::uri_escape($_) } @$domain );
 
-        push @opts, qq{domain="@uris"};
+        return qq{domain="@uris"};
+    } else {
+        return;
+    }
+}
+
+sub _build_auth_header_common {
+    my ( $c, $opts ) = @_;
+
+    return (
+        $c->_build_auth_header_realm($opts),
+        $c->_build_auth_header_domain($opts),
+    );
+}
+
+sub _build_basic_auth_header {
+    my ( $c, $opts ) = @_;
+    return $c->_join_auth_header_parts( Basic => $c->_build_auth_header_common );
+}
+
+sub _build_digest_auth_header {
+    my ( $c, $opts ) = @_;
+
+    my $nonce = $c->_digest_auth_nonce($opts);
+
+    my $key = __PACKAGE__ . '::opaque:' . $nonce->opaque;
+   
+    $c->store_digest_authorization_nonce( $key, $nonce );
+
+    return $c->_join_auth_header_parts( Digest =>
+        $c->_build_auth_header_common($opts),
+        map { sprintf '%s="%s"', $_, $nonce->$_ } qw(
+            qop
+            nonce
+            opaque
+            algorithm
+        ),
+    );
+}
+
+sub _digest_auth_nonce {
+    my ( $c, $opts ) = @_;
+
+    my $package = __PACKAGE__ . '::Nonce';
+
+    my $nonce   = $package->new;
+
+    if ( my $algorithm = $opts->{algorithm} || $c->config->{authentication}{http}{algorithm}) { 
+        $nonce->algorithm( $algorithm );
     }
 
-    if ( $type eq 'Digest' ) {
-        my $package = __PACKAGE__ . '::Nonce';
-        my $nonce   = $package->new;
-        $nonce->algorithm( $c->config->{authentication}{http}{algorithm}
-              || $nonce->algorithm );
+    return $nonce;
+}
 
-        push @opts, 'qop="' . $nonce->qop . '"';
-        push @opts, 'nonce="' . $nonce->nonce . '"';
-        push @opts, 'opaque="' . $nonce->opaque . '"';
-        push @opts, 'algorithm="' . $nonce->algorithm . '"';
+sub _join_auth_header_parts {
+    my ( $c, $type, @parts ) = @_;
+    return "$type " . join(", ", @parts );
+}
 
-        $c->_check_cache;
-        $c->cache->set( __PACKAGE__ . '::opaque:' . $nonce->opaque, $nonce );
-    }
+sub get_digest_authorization_nonce {
+    my ( $c, $key ) = @_;
 
-    return "$type " . join( ', ', @opts );
+    $c->_check_cache;
+    $c->cache->get( $key );
+}
+
+sub store_digest_authorization_nonce {
+    my ( $c, $key, $nonce ) = @_;
+
+    $c->_check_cache;
+    $c->cache->set( $key, $nonce );
 }
 
 package Catalyst::Plugin::Authentication::Credential::HTTP::Nonce;
@@ -309,20 +411,72 @@ are currently supported.
 
 =over 4
 
-=item authorization_required
+=item authorization_required %opts
 
 Tries to C<authenticate_http>, and if that fails calls
 C<authorization_required_response> and detaches the current action call stack.
 
-=item authenticate_http
+This method just passes the options through untouched.
+
+=item authenticate_http %opts
 
 Looks inside C<< $c->request->headers >> and processes the digest and basic
 (badly named) authorization header.
 
-=item authorization_required_response
+This will only try the methods set in the configuration.
+
+See the next two methods for what %opts can contain.
+
+=item authenticate_basic %opts
+
+=item authenticate_digest %opts
+
+Try to authenticate one of the methods without checking if the method is
+allowed in the configuration.
+
+%opts can contain C<store> (either an object or a name), C<user> (to disregard
+%the username from the header altogether, overriding it with a username or user
+%object).
+
+=item authorization_required_response %opts
 
 Sets C<< $c->response >> to the correct status code, and adds the correct
 header to demand authentication data from the user agent.
+
+Typically used by C<authorization_required>, but may be invoked manually.
+
+%opts can contain C<realm>, C<domain> and C<algorithm>, which are used to build
+%the digest header.
+
+=item store_digest_authorization_nonce $key, $nonce
+
+=item get_digest_authorization_nonce $key
+
+Set or get the C<$nonce> object used by the digest auth mode.
+
+You may override these methods. By default they will call C<get> and C<set> on
+C<< $c->cache >>.
+
+=back
+
+=head1 CONFIGURATION
+
+All configuration is stored in C<< YourApp->config->{authentication}{http} >>.
+
+This should be a hash, and it can contain the following entries:
+
+=over 4
+
+=item store
+
+Either a name or an object -- the default store to use for HTTP authentication.
+
+=item type
+
+Can be either C<any> (the default), C<basic> or C<digest>.
+
+This controls C<authorization_required_response> and C<authenticate_http>, but
+not the "manual" methods.
 
 =back
 
