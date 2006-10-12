@@ -1,5 +1,5 @@
 This file contains message digests of all files listed in MANIFEST,
-signed via the Module::Signature module, version 0.54.
+signed via the Module::Signature module, version 0.55.
 
 To verify the content in this distribution, first make sure you have
 Module::Signature installed, then type:
@@ -14,19 +14,19 @@ not run its Makefile.PL or Build.PL.
 -----BEGIN PGP SIGNED MESSAGE-----
 Hash: SHA1
 
-SHA1 59c92c28d04fbd7e4d178468eafa29d37147dd1f Changes
+SHA1 3f81ea02641cb2c51f14110f6f9b743ec0488887 Changes
 SHA1 abf7308315124dac77d87483349941710dc863d6 MANIFEST
-SHA1 abc5058635ececdbfc2c95f685e56760678fd3e6 META.yml
+SHA1 fd99902731629714222687c6d02d1e230f50d9bd META.yml
 SHA1 47b03bc7c3955e5af0c2545bacf297f465fffe69 Makefile.PL
-SHA1 d22fa1bc97d962a40a3f43d9930f595b2ea6264e README
-SHA1 f2dea98e1f2e0d8d969fbb64c059d6f1673c1142 lib/Catalyst/Plugin/Authentication/Credential/HTTP.pm
-SHA1 d63e27374afcad267ccda5278bff7df855843c74 t/basic.t
+SHA1 b4fcb2c11ccdfc9bc6449bb83138593bd2854439 README
+SHA1 f9e02b220b8203cb451905db83a4b4c4d2db3d3d lib/Catalyst/Plugin/Authentication/Credential/HTTP.pm
+SHA1 1a85269775dbc3649e4666f5ddfd7ec4bc55423e t/basic.t
 SHA1 383f039fa19e0cc97e7faf532852f4d3fd5db504 t/live_app.t
 SHA1 445fc0ee5146066a4ff1d54c9e80038390366f24 t/live_app_digest.t
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.1 (Darwin)
+Version: GnuPG v1.4.5 (Darwin)
 
-iD8DBQFFBpqOVCwRwOvSdBgRAuJ0AJ0bgU9yrKDP0jdS53CCATkci3X2PQCfWUu+
-IEOz1iJR6O81s7WvyLv9keE=
-=X/j5
+iD8DBQFFLpZXVCwRwOvSdBgRAjE3AJ990pjAGuchS+uFipMxpUANH2SgHACfcC/U
+VWCglxDcMo5A/58ueKf+R80=
+=fCeF
 -----END PGP SIGNATURE-----
