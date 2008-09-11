@@ -11,7 +11,7 @@ use URI::Escape    ();
 use Catalyst       ();
 use Digest::MD5    ();
 
-our $VERSION = "0.11";
+our $VERSION = "0.12";
 
 sub authenticate_http {
     my ( $c, @args ) = @_;
@@ -371,8 +371,8 @@ __END__
 
 =head1 NAME
 
-Catalyst::Plugin::Authentication::Credential::HTTP - HTTP Basic and Digest authentication
-for Catalyst.
+Catalyst::Plugin::Authentication::Credential::HTTP - Superseded / deprecated module 
+providing HTTP Basic and Digest authentication for Catalyst applications.
 
 =head1 SYNOPSIS
 
@@ -406,6 +406,20 @@ for Catalyst.
         $c->authorization_required_response( realm => "foo" );
         $c->error(0);
     }
+
+=head1 DEPRECATION NOTICE
+
+Please note that this module is B<DEPRECATED>, it has been Superseded by
+L<Catalyst::Authentication::Credential::HTTP>, please use that module in
+any new projects.
+
+Porting existing projects to use the new module should also be easy, and
+if there are any facilities in this module which you cannot see how to achieve
+in the new module then I<please contact the maintainer> as this is a bug and 
+I<will be fixed>.
+
+Let me say that again: B<THIS MODULE IS NOT SUPPORTED>, use 
+L<Catalyst::Authentication::Credential::HTTP> instead.
 
 =head1 DESCRIPTION
 
