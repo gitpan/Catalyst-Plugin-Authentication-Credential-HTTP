@@ -1,6 +1,7 @@
 NAME
-    Catalyst::Plugin::Authentication::Credential::HTTP - HTTP Basic and
-    Digest authentication for Catalyst.
+    Catalyst::Plugin::Authentication::Credential::HTTP - Superseded /
+    deprecated module providing HTTP Basic and Digest authentication for
+    Catalyst applications.
 
 SYNOPSIS
         use Catalyst qw/
@@ -33,6 +34,19 @@ SYNOPSIS
             $c->authorization_required_response( realm => "foo" );
             $c->error(0);
         }
+
+DEPRECATION NOTICE
+    Please note that this module is DEPRECATED, it has been Superseded by
+    Catalyst::Authentication::Credential::HTTP, please use that module in
+    any new projects.
+
+    Porting existing projects to use the new module should also be easy, and
+    if there are any facilities in this module which you cannot see how to
+    achieve in the new module then *please contact the maintainer* as this
+    is a bug and *will be fixed*.
+
+    Let me say that again: THIS MODULE IS NOT SUPPORTED, use
+    Catalyst::Authentication::Credential::HTTP instead.
 
 DESCRIPTION
     This moduule lets you use HTTP authentication with
@@ -95,6 +109,8 @@ METHODS
 
         You may override these methods. By default they will call "get" and
         "set" on "$c->cache".
+
+    get_http_auth_store %opts
 
 CONFIGURATION
     All configuration is stored in

@@ -18,5 +18,7 @@ README
 t/02pod.t
 t/03podcoverage.t
 t/basic.t
+t/lib/AuthDigestTestApp.pm
+t/lib/AuthTestApp.pm
 t/live_app.t
 t/live_app_digest.t

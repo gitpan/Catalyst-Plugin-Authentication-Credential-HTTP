@@ -2,6 +2,9 @@
 use strict;
 use warnings;
 use Test::More;
+use FindBin;
+use lib "$FindBin::Bin/lib";
+
 BEGIN {
     eval { require Test::WWW::Mechanize::Catalyst }
       or plan skip_all =>
@@ -12,34 +15,11 @@ BEGIN {
         eval { require Cache::FileCache }
       or plan skip_all =>
       "Cache::FileCache is needed for this test";
-    plan tests => 4;
+    plan tests => 5;
+    use_ok 'AuthDigestTestApp' or die;
 }
 use HTTP::Request;
-{
-    package AuthTestApp;
-    use Catalyst qw/
-      Authentication
-      Authentication::Store::Minimal
-      Authentication::Credential::HTTP
-      Cache
-      /;
-    use Test::More;
-    our $users;
-    sub moose : Local {
-        my ( $self, $c ) = @_;
-        $c->authorization_required( realm => 'testrealm@host.com' );
-        $c->res->body( $c->user->id );
-    }
-    __PACKAGE__->config->{cache}{backend} = {
-        class => 'Cache::FileCache',
-    };
-    __PACKAGE__->config->{authentication}{http}{type} = 'digest';
-    __PACKAGE__->config->{authentication}{users} = $users = {
-        Mufasa => { password         => "Circle Of Life", },
-    };
-    __PACKAGE__->setup;
-}
-use Test::WWW::Mechanize::Catalyst qw/AuthTestApp/;
+use Test::WWW::Mechanize::Catalyst qw/AuthDigestTestApp/;
 my $mech = Test::WWW::Mechanize::Catalyst->new;
 $mech->get("http://localhost/moose");
 is( $mech->status, 401, "status is 401" );

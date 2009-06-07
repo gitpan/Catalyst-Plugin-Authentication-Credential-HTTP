@@ -1,3 +1,6 @@
+0.13 2009-07-07
+   - Fix tests to work with Catalyst 5.80004 and above.
+
 0.12 2008-09-11
    - Added deprecation notice to module.
 
